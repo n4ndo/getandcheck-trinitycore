@@ -1,33 +1,13 @@
 <?php
 // config start
-$getandcheck_config = array ('developer_key' => '__DEVELOPER_KEY__', // get it on http://getandcheck.com/for-developers/ after auth
-                    'community_id' => '__COMMUNITY_ID__', // you can see it on getandcheck.com after you have create new community
-					'api_version'=>'1.0',
-					'endpoint_url'=>'http://__YOUR_WEBSITE__/' // website where is Get & Check endpoint is located (getandcheck-endpoint.php and getandcheck-endpoint.js). With slash / in the end!;
-					);
-					
-// configuration of connection to WoW database
-// auth
-$config_auth = array('host'	=> 'localhost', 
-				'user'		=> 'trinity',
-				'password'	=> 'trinity',
-				'db'		=> 'auth');
-				
-// Multi realm support. Use next scheme - realmid => array() ....
-$config_realms = array (
-					1 => array('host'=>'localhost',
-						  'user'=>'trinity',
-						  'password'=>'trinity',
-						  'db_chars'=>'characters',
-						  'db_world'=>'world')
-					);
-					
+
 $path = '/home/trinity/getandcheck/'; // Change path here! Need absolute path - solve any crontab problems
 
-// option for mail pushs
-$checkOnlinePlayers = 1; // Mail pushs. 0 means do not check online players or 1  - check mails for players in online and offline
-
 // config end
+
+if (file_exists("{$path}getandcheck-flush-config.php")) {
+	include("{$path}getandcheck-flush-config.php");
+} else die ("Config error. Edit and copy getandcheck-flush-config.php.example to getandcheck-flush-config.php \n");
 
 $file_lock = $path.'/getandcheck.lock';
 
@@ -110,20 +90,29 @@ $mysqli_auth->query("SET NAMES utf8"); // preventing any problems with names in 
 
 
 $realms = $mysqli_auth->query("select id, name, address, port from realmlist");
-while ($realm = $realms->fetch_array()) { 
+while ($realm = $realms->fetch_array()) {
+	if (in_array($realm['id'], $ignoredRealms)) {
+		continue;
+	} else {
+		// lets connect to realm specific databases
+		if (array_key_exists($realm['id'], $config_realms)) {
+			$mysqli_world = @new mysqli($config_realms[$realm['id']]['host'], $config_realms[$realm['id']]['user'], $config_realms[$realm['id']]['password'], $config_realms[$realm['id']]['db_world']);
+				if ($mysqli_world->connect_errno) {
+					// just notify, it is not critical
+					die("Connection problems to world database, realm id ".$realm['id']);
+				}
+				
+			$mysqli_char = @new mysqli($config_realms[$realm['id']]['host'], $config_realms[$realm['id']]['user'], $config_realms[$realm['id']]['password'], $config_realms[$realm['id']]['db_chars']);
+			if (!$mysqli_char->connect_errno) {
+					$mysqli_char->query("SET NAMES utf8");
+			} else die("Connection problems to characters database, realm id ".$realm['id']);
+		} else die("Realm {$realm['id']} is not in ignored list and not exist in config.\n");
+		
+	}
     $isOnline = @fsockopen($realm['address'], $realm['port'], $err, $errstr, 3);
     if ($isOnline) {
 	$isOnline = '<span class="label label-success">Online</div>';
 	// online stats
-	if (array_key_exists($realm['id'], $config_realms)) { 
-		$mysqli_world = @new mysqli($config_realms[$realm['id']]['host'], $config_realms[$realm['id']]['user'], $config_realms[$realm['id']]['password'], $config_realms[$realm['id']]['db_world']);
-	    if ($mysqli_world->connect_errno) {
-			// just notify, it is not critical
-			echo "Connection problems to world database, realm id ".$realm['id'];
-		}
-	    $mysqli_char = @new mysqli($config_realms[$realm['id']]['host'], $config_realms[$realm['id']]['user'], $config_realms[$realm['id']]['password'], $config_realms[$realm['id']]['db_chars']);
-	    if (!$mysqli_char->connect_errno) {
-	    		$mysqli_char->query("SET NAMES utf8"); 
 			$online = $mysqli_char->query("select count(1) as online from characters where online > 0;")->fetch_array(); // preventing incorrect stats if bots enabled and in online (online = 2)
 			$online = $online['online'];
 			
@@ -137,13 +126,6 @@ while ($realm = $realms->fetch_array()) {
 			$uptime['uptime'] -= $hours * (60 * 60);
 			$minutes = floor($uptime['uptime'] / 60);
 			$uptime = "{$days} d {$hours}h {$minutes}m";
-	    } else {
-			$online = 'CONFIG_ERROR (cannot connect to DB)';
-	    }
-	} else {
-	    $online = 'CONFIG_ERROR (realm not exist)';
-	    $uptime = 'CONFIG_ERROR (realm not exist)';
-	}
     } else {
 		$isOnline = '<span class="label label-default">Offline</div>';
 		$online = "N/A";

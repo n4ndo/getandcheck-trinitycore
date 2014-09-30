@@ -1,0 +1,28 @@
+<?php
+
+$getandcheck_config = array ('developer_key' => '__DEVELOPER_KEY__', // get it on http://getandcheck.com/for-developers/ after auth
+                    'community_id' => '__COMMUNITY_ID__', // you can see it on getandcheck.com after you have create new community
+					'api_version'=>'1.0',
+					'endpoint_url'=>'http://__YOUR_WEBSITE__/' // website where is Get & Check endpoint is located (getandcheck-endpoint.php and getandcheck-endpoint.js). With slash / in the end!;
+					);
+					
+// configuration of connection to WoW database
+// auth
+$config_auth = array('host'	=> 'localhost',
+				'user'		=> 'trinity',
+				'password'	=> 'trinity',
+				'db'		=> 'auth');
+				
+// Multi realm support. Use next scheme - realmid => array() ....
+$config_realms = array (
+					1 => array('host'=>'localhost',
+						  'user'=>'trinity',
+						  'password'=>'trinity',
+						  'db_chars'=>'characters',
+						  'db_world'=>'world')
+					);
+
+// option for mail pushs
+$checkOnlinePlayers = 1; // Mail pushs. 0 means do not check online players or 1  - check mails for players in online and offline
+
+?>
