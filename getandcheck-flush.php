@@ -123,6 +123,7 @@ while ($realm = $realms->fetch_array()) {
 		}
 	    $mysqli_char = @new mysqli($config_realms[$realm['id']]['host'], $config_realms[$realm['id']]['user'], $config_realms[$realm['id']]['password'], $config_realms[$realm['id']]['db_chars']);
 	    if (!$mysqli_char->connect_errno) {
+	    		$mysqli_char->query("SET NAMES utf8"); 
 			$online = $mysqli_char->query("select count(1) as online from characters where online > 0;")->fetch_array(); // preventing incorrect stats if bots enabled and in online (online = 2)
 			$online = $online['online'];
 			
