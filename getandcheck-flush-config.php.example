@@ -21,6 +21,9 @@ $config_realms = array (
 						  'db_chars'=>'characters',
 						  'db_world'=>'world')
 					);
+					
+// You can set list of ignored realms, e.g. array(1,5,7,10) where 1,5,7,10 - id of realms
+$ignoredRealms = array();
 
 // option for mail pushs
 $checkOnlinePlayers = 1; // Mail pushs. 0 means do not check online players or 1  - check mails for players in online and offline
