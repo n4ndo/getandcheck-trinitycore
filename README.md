@@ -21,7 +21,9 @@ Step 2 - server side
 	1) Copy getandcheck-endpoint.js and getandcheck-endpoint.php to your htdocs dir
 	2) Edit getandcheck-endpoint.php config (connection to database)
 	3) Copy getandcheck-flush.php to your home dir
-	4) Edit getandcheck-flush.php config. 
+	4) Edit getandcheck-flush.php config
+	3) Copy getandcheck-flush-config.php.example getandcheck-flush-config.php to your same dir
+	4) Edit getandcheck-flush.php config
 	5) Open it with editor and update config section ($getandcheck_config and database properties)
 	6) Import getandcheck.sql to characters database
 	7) Add getandcheck-flush.php script to crontab
